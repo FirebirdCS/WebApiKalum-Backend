@@ -23,3 +23,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// git remote set-url origin https://<githubtoken>.com/<username>>/<repositoryname>.git
