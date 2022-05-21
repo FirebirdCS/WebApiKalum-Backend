@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\git\\.NET Curso\\backend\\prod\\WebApiKalum\\WebApiKalum.csproj": {}
+    "C:\\git\\.NET Curso\\backend\\prod\\WebApiKalum-Backend\\WebApiKalum.csproj": {}
   },
   "projects": {
-    "C:\\git\\.NET Curso\\backend\\prod\\WebApiKalum\\WebApiKalum.csproj": {
+    "C:\\git\\.NET Curso\\backend\\prod\\WebApiKalum-Backend\\WebApiKalum.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\git\\.NET Curso\\backend\\prod\\WebApiKalum\\WebApiKalum.csproj",
+        "projectUniqueName": "C:\\git\\.NET Curso\\backend\\prod\\WebApiKalum-Backend\\WebApiKalum.csproj",
         "projectName": "WebApiKalum",
-        "projectPath": "C:\\git\\.NET Curso\\backend\\prod\\WebApiKalum\\WebApiKalum.csproj",
+        "projectPath": "C:\\git\\.NET Curso\\backend\\prod\\WebApiKalum-Backend\\WebApiKalum.csproj",
         "packagesPath": "C:\\Users\\alvar\\.nuget\\packages\\",
-        "outputPath": "C:\\git\\.NET Curso\\backend\\prod\\WebApiKalum\\obj\\",
+        "outputPath": "C:\\git\\.NET Curso\\backend\\prod\\WebApiKalum-Backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\alvar\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -38,6 +38,10 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
+              "target": "Package",
+              "version": "[6.0.5, )"
+            },
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",

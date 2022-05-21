@@ -1,3 +1,5 @@
+using WebApiKalum_Backend.Entities;
+
 namespace WebApiKalum.Entities
 {
     public class CarreraTecnica
@@ -5,5 +7,7 @@ namespace WebApiKalum.Entities
         public string CarreraId { get; set; }
 
         public string Nombre { get; set; }
+
+        public virtual List<Aspirante> Aspirantes { get; set; }
     }
 }
