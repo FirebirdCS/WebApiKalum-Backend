@@ -19,7 +19,10 @@ namespace WebApiKalum_Backend.Entities
         public string Estatus { get; set; }
 
         public string CarreraId { get; set; }
+        public string JornadaId { get; set; }
 
         public virtual CarreraTecnica CarreraTecnica { get; set; }
+
+        public virtual Jornada Jornada { get; set; }
     }
 }
