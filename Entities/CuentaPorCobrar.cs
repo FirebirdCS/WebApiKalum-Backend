@@ -1,6 +1,6 @@
 namespace WebApiKalum_Backend.Entities
 {
-    public class CuentasPorCobrar
+    public class CuentaPorCobrar
     {
         public string CuentaId { get; set; }
         public string Anio { get; set; }
