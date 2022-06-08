@@ -7,9 +7,9 @@ namespace WebApiKalum_Backend.Entities
         public string Descripcion { get; set; }
         public DateTime FechaCargo { get; set; }
         public DateTime FechaAplica { get; set; }
-        public Double MontoCargo { get; set; }
-        public Double Mora { get; set; }
-        public Double Descuento { get; set; }
+        public Decimal MontoCargo { get; set; }
+        public Decimal Mora { get; set; }
+        public Decimal Descuento { get; set; }
         public string Carne { get; set; }
         public string CargoId { get; set; }
 

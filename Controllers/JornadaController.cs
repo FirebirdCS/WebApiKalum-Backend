@@ -10,9 +10,9 @@ namespace WebApiKalum_Backend.Controllers
     public class JornadaController : ControllerBase
     {
         private readonly KalumDbContext DbContext;
-        private readonly ILogger<CarreraTecnicaController> Logger;
+        private readonly ILogger<JornadaController> Logger;
 
-        public JornadaController(KalumDbContext _DbContext, ILogger<CarreraTecnicaController> _Logger)
+        public JornadaController(KalumDbContext _DbContext, ILogger<JornadaController> _Logger)
         {
             this.DbContext = _DbContext;
             this.Logger = _Logger;
@@ -22,7 +22,7 @@ namespace WebApiKalum_Backend.Controllers
         {
             List<Jornada> jornadas = null;
             Logger.LogDebug("Iniciando el proceso de consulta de las jornadas en la BD");
-            jornadas = await DbContext.Jornada.ToListAsync();
+            jornadas = await DbContext.Jornada.Include(a => a.Aspirantes).Include(ins => ins.Inscripciones).AsSplitQuery().ToListAsync();
             if (jornadas == null || jornadas.Count == 0)
             {
                 Logger.LogWarning("No existen jornadas");
@@ -37,7 +37,7 @@ namespace WebApiKalum_Backend.Controllers
         public async Task<ActionResult<Jornada>> GetJornada(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busqueda de Jornada con id " + id);
-            var jornada = await DbContext.Jornada.FirstOrDefaultAsync(j => j.JornadaId == id);
+            var jornada = await DbContext.Jornada.Include(a => a.Aspirantes).Include(ins => ins.Inscripciones).AsSplitQuery().FirstOrDefaultAsync(j => j.JornadaId == id);
             if (jornada == null)
             {
                 Logger.LogWarning("No existe la jornada con el id " + id);

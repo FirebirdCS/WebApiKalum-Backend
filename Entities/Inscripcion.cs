@@ -13,6 +13,5 @@ namespace WebApiKalum_Backend.Entities
         public virtual Jornada Jornada { get; set; }
         public virtual CarreraTecnica CarreraTecnica { get; set; }
         public virtual Alumno Alumno { get; set; }
-        public virtual List<CuentaPorCobrar> CuentasPorCobrar { get; set; }
     }
 }

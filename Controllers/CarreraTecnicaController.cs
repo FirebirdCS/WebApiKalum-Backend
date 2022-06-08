@@ -22,7 +22,7 @@ namespace WebApiKalum_Backend.Controllers
         {
             List<CarreraTecnica> carrerasTecnicas = null;
             Logger.LogDebug("Iniciando proceso de consulta de carreras técnicas a la BD");
-            carrerasTecnicas = await DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(ins => ins.Inscripciones).ToListAsync();
+            carrerasTecnicas = await DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(ins => ins.Inscripciones).AsSplitQuery().ToListAsync();
             if (carrerasTecnicas == null || carrerasTecnicas.Count == 0)
             {
                 Logger.LogWarning("No existen carreras técnicas");
@@ -35,7 +35,7 @@ namespace WebApiKalum_Backend.Controllers
         public async Task<ActionResult<CarreraTecnica>> GetCarreraTecnica(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busqueda con el id " + id);
-            var carrera = await DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(ins => ins.Inscripciones).FirstOrDefaultAsync(ct => ct.CarreraId == id);
+            var carrera = await DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(ins => ins.Inscripciones).AsSplitQuery().FirstOrDefaultAsync(ct => ct.CarreraId == id);
             if (carrera == null)
             {
                 Logger.LogWarning("No existe la carrera técnica con el id " + id);
