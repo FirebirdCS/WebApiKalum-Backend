@@ -46,5 +46,54 @@ namespace WebApiKalum_Backend.Controllers
             Logger.LogInformation("Se ejecuto la petición del ID de forma exitosa!");
             return Ok(jornada);
         }
+        [HttpPost]
+        public async Task<ActionResult<Jornada>> Post([FromBody] Jornada value)
+        {
+            Logger.LogDebug("Iniciando el proceso de agregar una Jornada nueva");
+            value.JornadaId = Guid.NewGuid().ToString().ToUpper();
+            await DbContext.Jornada.AddAsync(value);
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation("Se finalizó el proceso de agregar una Jornada");
+            return new CreatedAtRouteResult("GetJornada", new { id = value.JornadaId }, value);
+        }
+
+        [HttpDelete("{id}", Name = "DeleteJornada")]
+
+        public async Task<ActionResult<Jornada>> Delete(string id)
+        {
+            Logger.LogDebug("Iniciando el proceso de eliminar una Jornada con id " + id);
+            Jornada jornada = await DbContext.Jornada.FirstOrDefaultAsync(j => j.JornadaId == id);
+            if (jornada == null)
+            {
+                Logger.LogWarning("No se encontro la jornada");
+                return NotFound();
+            }
+            else
+            {
+                DbContext.Jornada.Remove(jornada);
+                await DbContext.SaveChangesAsync();
+                Logger.LogInformation("Se ha eliminado la Jornada con id " + id);
+                return jornada;
+            }
+        }
+
+        [HttpPut("{id}", Name = "UpdateJornada")]
+
+        public async Task<ActionResult<Jornada>> Put(string id, [FromBody] Jornada value)
+        {
+            Logger.LogDebug("Iniciando el proceso de actualización de la Jornada con id " + id);
+            Jornada jornada = await DbContext.Jornada.FirstOrDefaultAsync(j => j.JornadaId == id);
+            if (jornada == null)
+            {
+                Logger.LogWarning("No se encontro la jornada");
+                return BadRequest();
+            }
+            jornada.JornadaTipo = value.JornadaTipo;
+            jornada.DescripcionJornada = value.DescripcionJornada;
+            DbContext.Entry(jornada).State = EntityState.Modified;
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation("Se ha actualizado la Jornada");
+            return NoContent();
+        }
     }
 }

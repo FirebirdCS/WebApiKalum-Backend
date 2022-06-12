@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace WebApiKalum_Backend.Entities
 {
     public class CuentaPorCobrar
@@ -7,8 +9,11 @@ namespace WebApiKalum_Backend.Entities
         public string Descripcion { get; set; }
         public DateTime FechaCargo { get; set; }
         public DateTime FechaAplica { get; set; }
+        [Precision(10, 2)]
         public Decimal MontoCargo { get; set; }
+        [Precision(10, 2)]
         public Decimal Mora { get; set; }
+        [Precision(10, 2)]
         public Decimal Descuento { get; set; }
         public string Carne { get; set; }
         public string CargoId { get; set; }
