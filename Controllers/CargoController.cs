@@ -46,5 +46,58 @@ namespace WebApiKalum_Backend.Controllers
             Logger.LogInformation("Se ejecuto la petición del id de forma exitosa!");
             return Ok(cargo);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<Cargo>> Post([FromBody] Cargo value)
+        {
+            Logger.LogDebug("Iniciando el proceso de agregar un cargo");
+            value.CargoId = Guid.NewGuid().ToString().ToUpper();
+            await DbContext.Cargo.AddAsync(value);
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation("Se finalizó el proceso de agregar un cargo");
+            return new CreatedAtRouteResult("GetCargo", new { id = value.CargoId }, value);
+        }
+
+        [HttpDelete("{id}", Name = "DeleteCargo")]
+
+        public async Task<ActionResult<Cargo>> Delete(string id)
+        {
+            Logger.LogDebug("Iniciando el proceso de eliminar un cargo con id " + id);
+            Cargo cargo = await DbContext.Cargo.FirstOrDefaultAsync(c => c.CargoId == id);
+            if (cargo == null)
+            {
+                Logger.LogWarning("No se encontro el cargo");
+                return NotFound();
+            }
+            else
+            {
+                DbContext.Cargo.Remove(cargo);
+                await DbContext.SaveChangesAsync();
+                Logger.LogInformation("Se ha eliminado el cargo con id " + id);
+                return cargo;
+
+            }
+        }
+
+        [HttpPut("{id}", Name = "UpdateCargo")]
+
+        public async Task<ActionResult<Cargo>> Put(string id, [FromBody] Cargo value)
+        {
+            Logger.LogDebug("Iniciando el proceso de actualización del cargo con id " + id);
+            Cargo cargo = await DbContext.Cargo.FirstOrDefaultAsync(c => c.CargoId == id);
+            if (cargo == null)
+            {
+                Logger.LogWarning("No se encontro el cargo");
+                return BadRequest();
+            }
+            cargo.Descripcion = value.Descripcion;
+            cargo.Prefijo = value.Prefijo;
+            cargo.Monto = value.Monto;
+            cargo.PorcentajeMora = value.PorcentajeMora;
+            DbContext.Entry(cargo).State = EntityState.Modified;
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation("Se ha actualizado el cargo");
+            return NoContent();
+        }
     }
 }
