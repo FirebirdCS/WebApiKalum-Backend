@@ -47,5 +47,59 @@ namespace WebApiKalum_Backend.Controllers
             Logger.LogInformation("Se ejecuto la petición del carne de forma exitosa!");
             return Ok(alumno);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<Alumno>> Post([FromBody] Alumno value)
+        {
+            Logger.LogDebug("Iniciando el proceso de agregar un cargo");
+            await DbContext.Alumno.AddAsync(value);
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation("Se finalizó el proceso de agregar un alumno");
+            return new CreatedAtRouteResult("GetAlumno", new { id = value.Carne }, value);
+        }
+
+        [HttpDelete("{id}", Name = "DeleteAlumno")]
+
+        public async Task<ActionResult<Alumno>> Delete(string id)
+        {
+            Logger.LogDebug("Iniciando el proceso de eliminar un alumno con carné " + id);
+            Alumno alumno = await DbContext.Alumno.FirstOrDefaultAsync(al => al.Carne == id);
+            if (alumno == null)
+            {
+                Logger.LogWarning("No se encontro el alumno");
+                return NotFound();
+            }
+            else
+            {
+                DbContext.Alumno.Remove(alumno);
+                await DbContext.SaveChangesAsync();
+                Logger.LogInformation("Se ha eliminado el alumno con carné " + id);
+                return alumno;
+
+            }
+        }
+
+        [HttpPut("{id}", Name = "UpdateAlumno")]
+
+        public async Task<ActionResult<Alumno>> Put(string id, [FromBody] Alumno value)
+        {
+            Logger.LogDebug("Iniciando el proceso de actualización del alumno con carne " + id);
+            Alumno alumno = await DbContext.Alumno.FirstOrDefaultAsync(al => al.Carne == id);
+            if (alumno == null)
+            {
+                Logger.LogWarning("No se encontro el alumno");
+                return BadRequest();
+            }
+            alumno.Apellidos = value.Apellidos;
+            alumno.Nombres = value.Nombres;
+            alumno.Direccion = value.Direccion;
+            alumno.Telefono = value.Telefono;
+            alumno.Email = value.Email;
+            DbContext.Entry(alumno).State = EntityState.Modified;
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation("Se ha actualizado el alumno");
+            return NoContent();
+        }
+
     }
 }

@@ -5,6 +5,7 @@ namespace WebApiKalum_Backend.Entities
     public class Alumno
     {
         [Required(ErrorMessage = "El campo {0} es requerido")]
+        [StringLength(7, MinimumLength = 7, ErrorMessage = "La cantidad mínima es de {2} y la máxima es {1} caracteres para el campo {0}")]
         public string Carne { get; set; }
         [Required(ErrorMessage = "El campo {0} es requerido")]
         [StringLength(64, MinimumLength = 4, ErrorMessage = "La cantidad mínima es de {2} y la máxima es {1} caracteres para el campo {0}")]
