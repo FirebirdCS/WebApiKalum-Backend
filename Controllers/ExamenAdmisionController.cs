@@ -46,5 +46,55 @@ namespace WebApiKalum_Backend.Controllers
             Logger.LogInformation("Se ejecuto la petición del ID de forma exitosa!");
             return Ok(examen);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<ExamenAdmision>> Post([FromBody] ExamenAdmision value)
+        {
+            Logger.LogDebug("Iniciando el proceso de agregar una Examen de Admision");
+            value.ExamenId = Guid.NewGuid().ToString().ToUpper();
+            await DbContext.ExamenAdmision.AddAsync(value);
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation("Se finalizó el proceso de agregar un examen de admisión");
+            return new CreatedAtRouteResult("GetExamenAdmision", new { id = value.ExamenId }, value);
+        }
+
+        [HttpDelete("{id}", Name = "DeleteExamenAdmision")]
+
+        public async Task<ActionResult<ExamenAdmision>> Delete(string id)
+        {
+            Logger.LogDebug("Iniciando el proceso de eliminar un Examen de Admision con id " + id);
+            ExamenAdmision examenAdmision = await DbContext.ExamenAdmision.FirstOrDefaultAsync(ex => ex.ExamenId == id);
+            if (examenAdmision == null)
+            {
+                Logger.LogWarning("No se encontro el examen de admision");
+                return NotFound();
+            }
+            else
+            {
+                DbContext.ExamenAdmision.Remove(examenAdmision);
+                await DbContext.SaveChangesAsync();
+                Logger.LogInformation("Se ha eliminado el examen de admisión con id " + id);
+                return examenAdmision;
+
+            }
+        }
+
+        [HttpPut("{id}", Name = "UpdateExamenAdmision")]
+
+        public async Task<ActionResult<ExamenAdmision>> Put(string id, [FromBody] ExamenAdmision value)
+        {
+            Logger.LogDebug("Iniciando el proceso de actualización del examen de admisión con id " + id);
+            ExamenAdmision examenAdmision = await DbContext.ExamenAdmision.FirstOrDefaultAsync(ex => ex.ExamenId == id);
+            if (examenAdmision == null)
+            {
+                Logger.LogWarning("No se encontro el examen de admisión");
+                return BadRequest();
+            }
+            examenAdmision.FechaExamen = value.FechaExamen;
+            DbContext.Entry(examenAdmision).State = EntityState.Modified;
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation("Se ha actualizado el examen de admisión");
+            return NoContent();
+        }
     }
 }
