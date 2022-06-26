@@ -1,7 +1,11 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiKalum;
+using WebApiKalum.Entities;
+using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
+using WebApiKalum_Backend.Utilities;
 
 namespace WebApiKalum_Backend.Controllers
 {
@@ -11,23 +15,28 @@ namespace WebApiKalum_Backend.Controllers
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<AspiranteController> Logger;
+        private readonly IMapper Mapper;
 
-        public AspiranteController(KalumDbContext _DbContext, ILogger<AspiranteController> _Logger)
+
+        public AspiranteController(KalumDbContext _DbContext, ILogger<AspiranteController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _DbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Aspirante>>> Get()
+        [ServiceFilter(typeof(ActionFilter))]
+        public async Task<ActionResult<IEnumerable<AspiranteListDTO>>> Get()
         {
-            List<Aspirante> aspirantes = null;
+            List<Aspirante> lista = null;
             Logger.LogDebug("Iniciando proceso de consulta de aspirantes a la BD");
-            aspirantes = await DbContext.Aspirante.AsSplitQuery().ToListAsync();
-            if (aspirantes == null || aspirantes.Count == 0)
+            lista = await DbContext.Aspirante.Include(a => a.CarreraTecnica).Include(a => a.Jornada).Include(a => a.ExamenAdmision).AsSplitQuery().ToListAsync();
+            if (lista == null || lista.Count == 0)
             {
                 Logger.LogWarning("No existen aspirantes");
                 return new NoContentResult();
             }
+            List<AspiranteListDTO> aspirantes = Mapper.Map<List<AspiranteListDTO>>(lista);
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
             return Ok(aspirantes);
         }
@@ -43,6 +52,33 @@ namespace WebApiKalum_Backend.Controllers
             }
             Logger.LogInformation("Se ejecuto la petición del ID de forma exitosa!");
             return Ok(aspirante);
+        }
+        [HttpPost]
+        public async Task<ActionResult<Aspirante>> Post([FromBody] Aspirante value)
+        {
+            Logger.LogDebug("Iniciando el proceso de agregar un Aspirante nuevo");
+            CarreraTecnica carreraTecnica = await DbContext.CarreraTecnica.FirstOrDefaultAsync(ct => ct.CarreraId == value.CarreraId);
+            if (carreraTecnica == null)
+            {
+                Logger.LogInformation("No existe la carrera técnica con id " + value.CarreraId);
+                return BadRequest();
+            }
+            Jornada jornada = await DbContext.Jornada.FirstOrDefaultAsync(j => j.JornadaId == value.JornadaId);
+            if (jornada == null)
+            {
+                Logger.LogInformation("No existe la jornada con id " + value.JornadaId);
+                return BadRequest();
+            }
+            ExamenAdmision examenAdmision = await DbContext.ExamenAdmision.FirstOrDefaultAsync(ex => ex.ExamenId == value.ExamenId);
+            if (examenAdmision == null)
+            {
+                Logger.LogInformation("No existe el examen con id " + value.ExamenId);
+                return BadRequest();
+            }
+            await DbContext.Aspirante.AddAsync(value);
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation("Se finalizó el proceso de agregar un Aspirante nuevo");
+            return new CreatedAtRouteResult("GetAspirante", new { id = value.NoExpediente }, value);
         }
     }
 }

@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "KeCUDVQ0YBTVVsFI8AVCk28Iwd4tPAGwgnIj7QomfIMkx/MOkCt5Ej8iy2IATYI7MthudmN4Fdvb7B3sTFv/BA==",
+  "dgSpecHash": "fBzVxDsobVATECgpWcWglVdGiqrBacCXiirot42+7vMo8vyfX57q4tCusJ/6Vjx+hxGXNEjYqJd5LsXjDeK7EA==",
   "success": true,
   "projectFilePath": "C:\\git\\.NET Curso\\backend\\prod\\WebApiKalum-Backend\\WebApiKalum.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\alvar\\.nuget\\packages\\automapper\\11.0.0\\automapper.11.0.0.nupkg.sha512",
+    "C:\\Users\\alvar\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\11.0.0\\automapper.extensions.microsoft.dependencyinjection.11.0.0.nupkg.sha512",
     "C:\\Users\\alvar\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\alvar\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\6.0.5\\microsoft.aspnetcore.jsonpatch.6.0.5.nupkg.sha512",
     "C:\\Users\\alvar\\.nuget\\packages\\microsoft.aspnetcore.mvc.newtonsoftjson\\6.0.5\\microsoft.aspnetcore.mvc.newtonsoftjson.6.0.5.nupkg.sha512",

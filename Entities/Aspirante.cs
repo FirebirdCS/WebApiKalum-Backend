@@ -1,11 +1,16 @@
 using System.ComponentModel.DataAnnotations;
 using WebApiKalum.Entities;
+using Microsoft.VisualBasic;
+using WebApiKalum_Backend.Helpers;
 
 namespace WebApiKalum_Backend.Entities
 {
     public class Aspirante
     {
+
         [Required(ErrorMessage = "El campo {0} es requerido")]
+        [StringLength(12, MinimumLength = 12, ErrorMessage = "El campo debe ser de 12 caracteres como mínimo y máximo")]
+        [NoExpediente]
         public string NoExpediente { get; set; }
         [Required(ErrorMessage = "El campo {0} es requerido")]
         public string Apellidos { get; set; }
@@ -16,9 +21,9 @@ namespace WebApiKalum_Backend.Entities
         [Required(ErrorMessage = "El campo {0} es requerido")]
         public string Telefono { get; set; }
         [Required(ErrorMessage = "El campo {0} es requerido")]
+        [EmailAddress(ErrorMessage = "El correo electrónico no es válido")]
         public string Email { get; set; }
-        [Required(ErrorMessage = "El campo {0} es requerido")]
-        public string Estatus { get; set; }
+        public string Estatus { get; set; } = "NO ASIGNADO";
         public string CarreraId { get; set; }
         public string JornadaId { get; set; }
         public string ExamenId { get; set; }
@@ -27,5 +32,6 @@ namespace WebApiKalum_Backend.Entities
         public virtual ExamenAdmision ExamenAdmision { get; set; }
         public virtual List<ResultadoExamenAdmision> ResultadosExamenAdmisiones { get; set; }
         public virtual List<InscripcionPago> InscripcionesPago { get; set; }
+
     }
 }
