@@ -80,5 +80,47 @@ namespace WebApiKalum_Backend.Controllers
             Logger.LogInformation("Se finalizó el proceso de agregar un Aspirante nuevo");
             return new CreatedAtRouteResult("GetAspirante", new { id = value.NoExpediente }, value);
         }
+
+        [HttpDelete("{id}", Name = "DeleteAspirante")]
+
+        public async Task<ActionResult<Aspirante>> Delete(string id)
+        {
+            Logger.LogDebug("Iniciando el proceso de eliminar un aspirante con expediente " + id);
+            Aspirante aspirante = await DbContext.Aspirante.FirstOrDefaultAsync(a => a.NoExpediente == id);
+            if (aspirante == null)
+            {
+                Logger.LogWarning("No se encontro el aspirante");
+                return NotFound();
+            }
+            else
+            {
+                DbContext.Aspirante.Remove(aspirante);
+                await DbContext.SaveChangesAsync();
+                Logger.LogInformation("Se ha eliminado el aspirante con no. expediente " + id);
+                return aspirante;
+
+            }
+        }
+
+        [HttpPut("{id}", Name = "UpdateAspirante")]
+
+        public async Task<ActionResult<Aspirante>> Put(string id, [FromBody] Aspirante value)
+        {
+            Logger.LogDebug("Iniciando el proceso de actualización del examen de admisión con no. expediente " + id);
+            Aspirante aspirante = await DbContext.Aspirante.FirstOrDefaultAsync(a => a.NoExpediente == id);
+            if (aspirante == null)
+            {
+                Logger.LogWarning("No se encontro el aspirante");
+                return BadRequest();
+            }
+            aspirante.Apellidos = value.Apellidos;
+            aspirante.Nombres = value.Nombres;
+            aspirante.Direccion = value.Direccion;
+            aspirante.Telefono = value.Telefono;
+            DbContext.Entry(aspirante).State = EntityState.Modified;
+            await DbContext.SaveChangesAsync();
+            Logger.LogInformation("Se ha actualizado el aspirante");
+            return NoContent();
+        }
     }
 }
