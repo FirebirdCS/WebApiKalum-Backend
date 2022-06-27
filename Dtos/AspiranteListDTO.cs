@@ -13,5 +13,6 @@ namespace WebApiKalum_Backend.Dtos
         public CarreraTecnicaCreateDTO CarreraTecnica { get; set; }
         public JornadaCreateDTO Jornada { get; set; }
         public ExamenAdmisionCreateDTO ExamenAdmision { get; set; }
+
     }
 }
