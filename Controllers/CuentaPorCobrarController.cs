@@ -100,6 +100,11 @@ namespace WebApiKalum_Backend.Controllers
                 return BadRequest();
             }
             cuenta.Descripcion = value.Descripcion;
+            cuenta.FechaCargo = value.FechaCargo;
+            cuenta.FechaAplica = value.FechaAplica;
+            cuenta.MontoCargo = value.MontoCargo;
+            cuenta.Mora = value.Mora;
+            cuenta.Descuento = value.Descuento;
             DbContext.Entry(cuenta).State = EntityState.Modified;
             await DbContext.SaveChangesAsync();
             Logger.LogInformation("Se ha actualizado la cuenta");
