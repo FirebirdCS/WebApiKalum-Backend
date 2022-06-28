@@ -23,7 +23,7 @@ namespace WebApiKalum_Backend.Controllers
         {
             List<InscripcionPago> inscripcionPago = null;
             Logger.LogDebug("Iniciando el proceso de consulta de las inscripciones de pago en la BD");
-            inscripcionPago = await DbContext.InscripcionPago.AsSplitQuery().ToListAsync();
+            inscripcionPago = await DbContext.InscripcionPago.Include(a => a.Aspirante).AsSplitQuery().ToListAsync();
             if (inscripcionPago == null || inscripcionPago.Count == 0)
             {
                 Logger.LogWarning("No existen inscripciones de pago");

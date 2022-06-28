@@ -24,7 +24,7 @@ namespace WebApiKalum_Backend.Controllers
         {
             List<InversionCarreraTecnica> ict = null;
             Logger.LogDebug("Iniciando el proceso de consulta de las inversiones en la BD");
-            ict = await DbContext.InversionCarreraTecnica.AsSplitQuery().ToListAsync();
+            ict = await DbContext.InversionCarreraTecnica.Include(ct => ct.CarreraTecnica).AsSplitQuery().ToListAsync();
             if (ict == null || ict.Count == 0)
             {
                 Logger.LogWarning("No existen inversiones");
