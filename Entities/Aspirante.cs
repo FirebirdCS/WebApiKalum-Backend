@@ -9,7 +9,7 @@ namespace WebApiKalum_Backend.Entities
     {
 
         [Required(ErrorMessage = "El campo {0} es requerido")]
-        [StringLength(12, MinimumLength = 12, ErrorMessage = "El campo debe ser de 12 caracteres como mínimo y máximo")]
+        [StringLength(12, MinimumLength = 11, ErrorMessage = "El campo debe ser de 11 caracteres como mínimo y máximo")]
         [NoExpediente]
         public string NoExpediente { get; set; }
         [Required(ErrorMessage = "El campo {0} es requerido")]

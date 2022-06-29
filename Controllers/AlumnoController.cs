@@ -51,7 +51,7 @@ namespace WebApiKalum_Backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Alumno>> Post([FromBody] Alumno value)
         {
-            Logger.LogDebug("Iniciando el proceso de agregar un cargo");
+            Logger.LogDebug("Iniciando el proceso de agregar un alumno");
             await DbContext.Alumno.AddAsync(value);
             await DbContext.SaveChangesAsync();
             Logger.LogInformation("Se finalizó el proceso de agregar un alumno");
