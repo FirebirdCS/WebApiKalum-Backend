@@ -1,7 +1,9 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiKalum;
 using WebApiKalum.Entities;
+using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
 
 namespace WebApiKalum_Backend.Controllers
@@ -12,15 +14,17 @@ namespace WebApiKalum_Backend.Controllers
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<InversionCarreraTecnicaController> Logger;
+        private readonly IMapper Mapper;
 
-        public InversionCarreraTecnicaController(KalumDbContext _DbContext, ILogger<InversionCarreraTecnicaController> _Logger)
+        public InversionCarreraTecnicaController(KalumDbContext _DbContext, ILogger<InversionCarreraTecnicaController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _DbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InversionCarreraTecnica>>> Get()
+        public async Task<ActionResult<IEnumerable<InversionCarreraTecnicaListDTO>>> Get()
         {
             List<InversionCarreraTecnica> ict = null;
             Logger.LogDebug("Iniciando el proceso de consulta de las inversiones en la BD");
@@ -30,23 +34,25 @@ namespace WebApiKalum_Backend.Controllers
                 Logger.LogWarning("No existen inversiones");
                 return new NoContentResult();
             }
+            List<InversionCarreraTecnicaListDTO> lista = Mapper.Map<List<InversionCarreraTecnicaListDTO>>(ict);
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
-            return Ok(ict);
+            return Ok(lista);
         }
 
         [HttpGet("{id}", Name = "GetInversionCarreraTecnica")]
 
-        public async Task<ActionResult<InversionCarreraTecnica>> GetInversionCarreraTecnica(string id)
+        public async Task<ActionResult<InversionCarreraTecnicaListDTO>> GetInversionCarreraTecnica(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busqueda de la inversion con id " + id);
-            var ict = await DbContext.InversionCarreraTecnica.AsSplitQuery().FirstOrDefaultAsync(ict => ict.InversionId == id);
+            var ict = await DbContext.InversionCarreraTecnica.Include(ct => ct.CarreraTecnica).AsSplitQuery().FirstOrDefaultAsync(ict => ict.InversionId == id);
             if (ict == null)
             {
                 Logger.LogWarning("No existe la inversion con id " + id);
                 return new NoContentResult();
             }
+            InversionCarreraTecnicaListDTO lista = Mapper.Map<InversionCarreraTecnicaListDTO>(ict);
             Logger.LogInformation("Se ejecuto la petición del id de forma exitosa!");
-            return Ok(ict);
+            return Ok(lista);
         }
         [HttpPost]
         public async Task<ActionResult<InversionCarreraTecnica>> Post([FromBody] InversionCarreraTecnica value)

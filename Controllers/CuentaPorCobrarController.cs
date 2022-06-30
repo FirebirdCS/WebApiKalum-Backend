@@ -1,6 +1,8 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiKalum;
+using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
 
 namespace WebApiKalum_Backend.Controllers
@@ -11,14 +13,16 @@ namespace WebApiKalum_Backend.Controllers
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<CuentaPorCobrarController> Logger;
+        private readonly IMapper Mapper;
 
-        public CuentaPorCobrarController(KalumDbContext _DbContext, ILogger<CuentaPorCobrarController> _Logger)
+        public CuentaPorCobrarController(KalumDbContext _DbContext, ILogger<CuentaPorCobrarController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _DbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CuentaPorCobrar>>> Get()
+        public async Task<ActionResult<IEnumerable<CuentaPorCobrarListDTO>>> Get()
         {
             List<CuentaPorCobrar> cuenta = null;
             Logger.LogDebug("Iniciando el proceso de consulta de las cuentas en la BD");
@@ -28,12 +32,13 @@ namespace WebApiKalum_Backend.Controllers
                 Logger.LogWarning("No existen cargos");
                 return new NoContentResult();
             }
+            List<CuentaPorCobrarListDTO> lista = Mapper.Map<List<CuentaPorCobrarListDTO>>(cuenta);
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
-            return Ok(cuenta);
+            return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetCuentaPorCobrar")]
 
-        public async Task<ActionResult<CuentaPorCobrar>> GetCuentaPorCobrar(string id)
+        public async Task<ActionResult<CuentaPorCobrarListDTO>> GetCuentaPorCobrar(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busqueda de la cuenta por cobrar con id " + id);
             var cuenta = await DbContext.CuentaPorCobrar.AsSplitQuery().FirstOrDefaultAsync(cpc => cpc.CuentaId == id);
@@ -42,8 +47,9 @@ namespace WebApiKalum_Backend.Controllers
                 Logger.LogWarning("No existe la cuenta por cobrar con id " + id);
                 return new NoContentResult();
             }
+            CuentaPorCobrarListDTO lista = Mapper.Map<CuentaPorCobrarListDTO>(cuenta);
             Logger.LogInformation("Se ejecuto la petición del id de forma exitosa!");
-            return Ok(cuenta);
+            return Ok(lista);
         }
 
         [HttpPost]
