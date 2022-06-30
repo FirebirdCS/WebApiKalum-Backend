@@ -1,6 +1,8 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiKalum;
+using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
 
 namespace WebApiKalum_Backend.Controllers
@@ -11,30 +13,33 @@ namespace WebApiKalum_Backend.Controllers
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<JornadaController> Logger;
+        private readonly IMapper Mapper;
 
-        public JornadaController(KalumDbContext _DbContext, ILogger<JornadaController> _Logger)
+        public JornadaController(KalumDbContext _DbContext, ILogger<JornadaController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _DbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Jornada>>> Get()
+        public async Task<ActionResult<IEnumerable<JornadaListDTO>>> Get()
         {
-            List<Jornada> jornadas = null;
+            List<Jornada> lista = null;
             Logger.LogDebug("Iniciando el proceso de consulta de las jornadas en la BD");
-            jornadas = await DbContext.Jornada.Include(a => a.Aspirantes).Include(ins => ins.Inscripciones).AsSplitQuery().ToListAsync();
-            if (jornadas == null || jornadas.Count == 0)
+            lista = await DbContext.Jornada.Include(a => a.Aspirantes).Include(ins => ins.Inscripciones).AsSplitQuery().ToListAsync();
+            if (lista == null || lista.Count == 0)
             {
                 Logger.LogWarning("No existen jornadas");
                 return new NoContentResult();
             }
+            List<JornadaListDTO> jornadas = Mapper.Map<List<JornadaListDTO>>(lista);
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
             return Ok(jornadas);
 
         }
         [HttpGet("{id}", Name = "GetJornada")]
 
-        public async Task<ActionResult<Jornada>> GetJornada(string id)
+        public async Task<ActionResult<JornadaListDTO>> GetJornada(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busqueda de Jornada con id " + id);
             var jornada = await DbContext.Jornada.Include(a => a.Aspirantes).Include(ins => ins.Inscripciones).AsSplitQuery().FirstOrDefaultAsync(j => j.JornadaId == id);
@@ -43,8 +48,9 @@ namespace WebApiKalum_Backend.Controllers
                 Logger.LogWarning("No existe la jornada con el id " + id);
                 return new NoContentResult();
             }
+            JornadaListDTO lista = Mapper.Map<JornadaListDTO>(jornada);
             Logger.LogInformation("Se ejecuto la petición del ID de forma exitosa!");
-            return Ok(jornada);
+            return Ok(lista);
         }
         [HttpPost]
         public async Task<ActionResult<Jornada>> Post([FromBody] Jornada value)

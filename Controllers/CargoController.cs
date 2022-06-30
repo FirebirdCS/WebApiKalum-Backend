@@ -1,7 +1,9 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiKalum;
 using WebApiKalum.Entities;
+using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
 
 namespace WebApiKalum_Backend.Controllers
@@ -12,14 +14,16 @@ namespace WebApiKalum_Backend.Controllers
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<CargoController> Logger;
+        private readonly IMapper Mapper;
 
-        public CargoController(KalumDbContext _DbContext, ILogger<CargoController> _Logger)
+        public CargoController(KalumDbContext _DbContext, ILogger<CargoController> _Logger, IMapper _Mapper)
         {
             this.DbContext = _DbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Cargo>>> Get()
+        public async Task<ActionResult<IEnumerable<CargoListDTO>>> Get()
         {
             List<Cargo> cargo = null;
             Logger.LogDebug("Iniciando el proceso de consulta de los cargos en la BD");
@@ -29,12 +33,13 @@ namespace WebApiKalum_Backend.Controllers
                 Logger.LogWarning("No existen cargos");
                 return new NoContentResult();
             }
+            List<CargoListDTO> lista = Mapper.Map<List<CargoListDTO>>(cargo);
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
-            return Ok(cargo);
+            return Ok(lista);
         }
         [HttpGet("{id}", Name = "GetCargo")]
 
-        public async Task<ActionResult<Cargo>> GetCargo(string id)
+        public async Task<ActionResult<CargoListDTO>> GetCargo(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busqueda del cargo con id " + id);
             var cargo = await DbContext.Cargo.Include(cpc => cpc.CuentasPorCobrar).AsSplitQuery().FirstOrDefaultAsync(c => c.CargoId == id);
@@ -43,8 +48,9 @@ namespace WebApiKalum_Backend.Controllers
                 Logger.LogWarning("No existe el cargo con id " + id);
                 return new NoContentResult();
             }
+            CargoListDTO lista = Mapper.Map<CargoListDTO>(cargo);
             Logger.LogInformation("Se ejecuto la petición del id de forma exitosa!");
-            return Ok(cargo);
+            return Ok(lista);
         }
 
         [HttpPost]
