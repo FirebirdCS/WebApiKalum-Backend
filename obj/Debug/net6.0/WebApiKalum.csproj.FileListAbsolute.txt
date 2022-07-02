@@ -126,3 +126,4 @@ C:\git\.NET Curso\backend\prod\WebApiKalum-Backend\bin\Debug\net6.0\Newtonsoft.J
 C:\git\.NET Curso\backend\prod\WebApiKalum-Backend\bin\Debug\net6.0\Newtonsoft.Json.Bson.dll
 C:\git\.NET Curso\backend\prod\WebApiKalum-Backend\bin\Debug\net6.0\AutoMapper.dll
 C:\git\.NET Curso\backend\prod\WebApiKalum-Backend\bin\Debug\net6.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+C:\git\.NET Curso\backend\prod\WebApiKalum-Backend\bin\Debug\net6.0\RabbitMQ.Client.dll

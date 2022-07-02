@@ -1,7 +1,12 @@
+using System.Text;
+using System.Text.Json;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RabbitMQ.Client;
 using WebApiKalum;
 using WebApiKalum.Entities;
+using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
 
 namespace WebApiKalum_Backend.Controllers
@@ -12,11 +17,13 @@ namespace WebApiKalum_Backend.Controllers
     {
         private readonly KalumDbContext DbContext;
         private readonly ILogger<Inscripcion> Logger;
+        private readonly IMapper Mapper;
 
-        public InscripcionController(KalumDbContext _DbContext, ILogger<Inscripcion> _Logger)
+        public InscripcionController(KalumDbContext _DbContext, ILogger<Inscripcion> _Logger, IMapper _Mapper)
         {
             this.DbContext = _DbContext;
             this.Logger = _Logger;
+            this.Mapper = _Mapper;
         }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Inscripcion>>> Get()
@@ -32,8 +39,67 @@ namespace WebApiKalum_Backend.Controllers
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
             return Ok(inscripcion);
         }
-        [HttpGet("{id}", Name = "GetInscripcion")]
 
+        [HttpPost("Enrollments")]
+        public async Task<ActionResult<ResponseEnrollmentDTO>> EnrollmentCreateAsync([FromBody] EnrollmentDTO value)
+        {
+            Aspirante aspirante = await DbContext.Aspirante.FirstOrDefaultAsync(a => a.NoExpediente == value.NoExpediente);
+            if (aspirante == null)
+            {
+                Logger.LogInformation("No existe el aspirante con no. de expediente " + value.NoExpediente);
+                return BadRequest();
+            }
+            CarreraTecnica carreraTecnica = await DbContext.CarreraTecnica.FirstOrDefaultAsync(ct => ct.CarreraId == value.CarreraId);
+            if (carreraTecnica == null)
+            {
+                Logger.LogInformation("No existe la carrera técnica con id " + value.CarreraId);
+                return BadRequest();
+            }
+            bool respuesta = await CrearSolicitudAsync(value);
+            if (respuesta == true)
+            {
+                ResponseEnrollmentDTO response = new ResponseEnrollmentDTO();
+                response.HttpStatus = 201;
+                response.Message = "El proceso de inscripción se ha realizado con exito";
+                return Ok(response);
+            }
+            else
+            {
+                return StatusCode(503, value);
+            }
+        }
+
+        private async Task<bool> CrearSolicitudAsync(EnrollmentDTO value)
+        {
+            bool proceso = false;
+            ConnectionFactory factory = new ConnectionFactory();
+            IConnection conexion = null;
+            IModel channel = null;
+            factory.HostName = "localhost";
+            factory.VirtualHost = "/";
+            factory.Port = 5672;
+            factory.UserName = "guest";
+            factory.Password = "guest";
+            try
+            {
+                conexion = factory.CreateConnection();
+                channel = conexion.CreateModel();
+                channel.BasicPublish("kalum.exchange.enrollment", "", null, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value)));
+                proceso = true;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e.Message);
+            }
+            finally
+            {
+                channel.Close();
+                conexion.Close();
+            }
+            return proceso;
+        }
+
+        [HttpGet("{id}", Name = "GetInscripcion")]
         public async Task<ActionResult<Inscripcion>> GetInscripcion(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busqueda de la inscripcion con id " + id);

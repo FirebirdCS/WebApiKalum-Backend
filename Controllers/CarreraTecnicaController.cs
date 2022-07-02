@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApiKalum;
 using WebApiKalum.Entities;
 using WebApiKalum_Backend.Dtos;
+using WebApiKalum_Backend.Utilities;
 
 namespace WebApiKalum_Backend.Controllers
 {
@@ -37,6 +38,21 @@ namespace WebApiKalum_Backend.Controllers
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
             return Ok(carrerasTecnicas);
         }
+        [HttpGet("page/{page}")]
+        public async Task<ActionResult<IEnumerable<CarreraTecnicaListDTO>>> GetPagination(int page)
+        {
+            var queryable = this.DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(ins => ins.Inscripciones).AsQueryable();
+            var paginacion = new HttpResponsePagination<CarreraTecnica>(queryable, page);
+            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return Ok(paginacion);
+            }
+        }
+
         [HttpGet("{id}", Name = "GetCarreraTecnica")]
         public async Task<ActionResult<CarreraTecnica>> GetCarreraTecnica(string id)
         {
