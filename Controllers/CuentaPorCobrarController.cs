@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApiKalum;
 using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
+using WebApiKalum_Backend.Utilities;
 
 namespace WebApiKalum_Backend.Controllers
 {
@@ -36,6 +37,22 @@ namespace WebApiKalum_Backend.Controllers
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
             return Ok(lista);
         }
+
+        [HttpGet("page/{page}")]
+        public async Task<ActionResult<IEnumerable<CuentaPorCobrarListDTO>>> GetPagination(int page)
+        {
+            var queryable = this.DbContext.CuentaPorCobrar.AsSplitQuery().AsQueryable();
+            var paginacion = new HttpResponsePagination<CuentaPorCobrar>(queryable, page);
+            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return Ok(paginacion);
+            }
+        }
+
         [HttpGet("{id}", Name = "GetCuentaPorCobrar")]
 
         public async Task<ActionResult<CuentaPorCobrarListDTO>> GetCuentaPorCobrar(string id)

@@ -5,6 +5,7 @@ using WebApiKalum;
 using WebApiKalum.Entities;
 using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
+using WebApiKalum_Backend.Utilities;
 
 namespace WebApiKalum_Backend.Controllers
 {
@@ -37,6 +38,21 @@ namespace WebApiKalum_Backend.Controllers
             List<InversionCarreraTecnicaListDTO> lista = Mapper.Map<List<InversionCarreraTecnicaListDTO>>(ict);
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
             return Ok(lista);
+        }
+
+        [HttpGet("page/{page}")]
+        public async Task<ActionResult<IEnumerable<InversionCarreraTecnicaListDTO>>> GetPagination(int page)
+        {
+            var queryable = this.DbContext.InversionCarreraTecnica.Include(ct => ct.CarreraTecnica).AsSplitQuery().AsQueryable();
+            var paginacion = new HttpResponsePagination<InversionCarreraTecnica>(queryable, page);
+            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return Ok(paginacion);
+            }
         }
 
         [HttpGet("{id}", Name = "GetInversionCarreraTecnica")]

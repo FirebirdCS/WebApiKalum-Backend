@@ -40,6 +40,20 @@ namespace WebApiKalum_Backend.Controllers
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
             return Ok(aspirantes);
         }
+        [HttpGet("page/{page}")]
+        public async Task<ActionResult<IEnumerable<AspiranteListDTO>>> GetPagination(int page)
+        {
+            var queryable = this.DbContext.Aspirante.Include(a => a.CarreraTecnica).Include(a => a.Jornada).Include(a => a.ExamenAdmision).AsSplitQuery().AsQueryable();
+            var paginacion = new HttpResponsePagination<Aspirante>(queryable, page);
+            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return Ok(paginacion);
+            }
+        }
         [HttpGet("{id}", Name = "GetAspirante")]
         public async Task<ActionResult<AspiranteListDTO>> GetAspirante(string id)
         {

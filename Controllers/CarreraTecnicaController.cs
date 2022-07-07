@@ -41,7 +41,7 @@ namespace WebApiKalum_Backend.Controllers
         [HttpGet("page/{page}")]
         public async Task<ActionResult<IEnumerable<CarreraTecnicaListDTO>>> GetPagination(int page)
         {
-            var queryable = this.DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(ins => ins.Inscripciones).AsQueryable();
+            var queryable = this.DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(ins => ins.Inscripciones).AsSplitQuery().AsQueryable();
             var paginacion = new HttpResponsePagination<CarreraTecnica>(queryable, page);
             if (paginacion.Content == null && paginacion.Content.Count == 0)
             {

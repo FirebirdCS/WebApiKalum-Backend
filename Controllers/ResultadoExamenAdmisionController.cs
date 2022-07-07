@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiKalum;
 using WebApiKalum_Backend.Entities;
+using WebApiKalum_Backend.Utilities;
 
 namespace WebApiKalum_Backend.Controllers
 {
@@ -31,6 +32,21 @@ namespace WebApiKalum_Backend.Controllers
             }
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
             return Ok(resultado);
+        }
+
+        [HttpGet("page/{page}")]
+        public async Task<ActionResult<IEnumerable<ResultadoExamenAdmision>>> GetPagination(int page)
+        {
+            var queryable = DbContext.ResultadoExamenAdmision.Include(a => a.Aspirante).AsSplitQuery().AsQueryable();
+            var paginacion = new HttpResponsePagination<ResultadoExamenAdmision>(queryable, page);
+            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return Ok(paginacion);
+            }
         }
 
         [HttpGet("{id}", Name = "GetResultadoExamenAdmision")]

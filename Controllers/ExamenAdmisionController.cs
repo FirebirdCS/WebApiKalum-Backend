@@ -5,6 +5,7 @@ using WebApiKalum;
 using WebApiKalum.Entities;
 using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
+using WebApiKalum_Backend.Utilities;
 
 namespace WebApiKalum_Backend.Controllers
 {
@@ -36,6 +37,20 @@ namespace WebApiKalum_Backend.Controllers
             List<ExamenAdmisionListDTO> lista = Mapper.Map<List<ExamenAdmisionListDTO>>(examen);
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
             return Ok(lista);
+        }
+        [HttpGet("page/{page}")]
+        public async Task<ActionResult<IEnumerable<ExamenAdmisionListDTO>>> GetPagination(int page)
+        {
+            var queryable = this.DbContext.ExamenAdmision.Include(a => a.Aspirantes).AsSplitQuery().AsQueryable();
+            var paginacion = new HttpResponsePagination<ExamenAdmision>(queryable, page);
+            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return Ok(paginacion);
+            }
         }
         [HttpGet("{id}", Name = "GetExamenAdmision")]
 

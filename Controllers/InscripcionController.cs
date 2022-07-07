@@ -8,6 +8,7 @@ using WebApiKalum;
 using WebApiKalum.Entities;
 using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
+using WebApiKalum_Backend.Utilities;
 
 namespace WebApiKalum_Backend.Controllers
 {
@@ -97,6 +98,20 @@ namespace WebApiKalum_Backend.Controllers
                 conexion.Close();
             }
             return proceso;
+        }
+        [HttpGet("page/{page}")]
+        public async Task<ActionResult<IEnumerable<InscripcionListDTO>>> GetPagination(int page)
+        {
+            var queryable = this.DbContext.Inscripcion.AsQueryable();
+            var paginacion = new HttpResponsePagination<Inscripcion>(queryable, page);
+            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return Ok(paginacion);
+            }
         }
 
         [HttpGet("{id}", Name = "GetInscripcion")]
