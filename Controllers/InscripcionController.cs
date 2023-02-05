@@ -8,6 +8,7 @@ using WebApiKalum;
 using WebApiKalum.Entities;
 using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
+using WebApiKalum_Backend.Services;
 using WebApiKalum_Backend.Utilities;
 
 namespace WebApiKalum_Backend.Controllers
@@ -16,15 +17,18 @@ namespace WebApiKalum_Backend.Controllers
     [Route("v1/KalumManagement/Inscripciones")]
     public class InscripcionController : ControllerBase
     {
+        public IConfiguration Configuration { get; }
+        public IUtilsService UtilsService { get; }
         private readonly KalumDbContext DbContext;
         private readonly ILogger<Inscripcion> Logger;
         private readonly IMapper Mapper;
 
-        public InscripcionController(KalumDbContext _DbContext, ILogger<Inscripcion> _Logger, IMapper _Mapper)
+        public InscripcionController(KalumDbContext _DbContext, ILogger<Inscripcion> _Logger, IMapper _Mapper, IUtilsService _UtilsService)
         {
             this.DbContext = _DbContext;
             this.Logger = _Logger;
             this.Mapper = _Mapper;
+            this.UtilsService = _UtilsService;
         }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Inscripcion>>> Get()
@@ -76,16 +80,17 @@ namespace WebApiKalum_Backend.Controllers
             ConnectionFactory factory = new ConnectionFactory();
             IConnection conexion = null;
             IModel channel = null;
-            factory.HostName = "localhost";
-            factory.VirtualHost = "/";
-            factory.Port = 5672;
-            factory.UserName = "guest";
-            factory.Password = "guest";
+            factory.HostName = this.Configuration.GetValue<string>("RabbitConfiguration:HostName"); ;
+            factory.VirtualHost = this.Configuration.GetValue<string>("RabbitConfiguration:VirtualHost"); ;
+            factory.Port = this.Configuration.GetValue<int>("RabbitConfiguration:Port");
+            factory.UserName = this.Configuration.GetValue<string>("RabbitConfiguration:UserName");
+            factory.Password = this.Configuration.GetValue<string>("RabbitConfiguration:Password");
             try
             {
                 conexion = factory.CreateConnection();
                 channel = conexion.CreateModel();
-                channel.BasicPublish("kalum.exchange.enrollment", "", null, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value)));
+                channel.BasicPublish(this.Configuration.GetValue<string>("RabbitConfiguration:EnrollmentExchange"), "", null, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value)));
+                await Task.Delay(100);
                 proceso = true;
             }
             catch (Exception e)
@@ -103,14 +108,16 @@ namespace WebApiKalum_Backend.Controllers
         public async Task<ActionResult<IEnumerable<InscripcionListDTO>>> GetPagination(int page)
         {
             var queryable = this.DbContext.Inscripcion.AsQueryable();
-            var paginacion = new HttpResponsePagination<Inscripcion>(queryable, page);
-            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            int registros = await queryable.CountAsync();
+            if (registros == 0)
             {
                 return NoContent();
             }
             else
             {
-                return Ok(paginacion);
+                var inscripciones = await queryable.OrderBy(inscripciones => inscripciones.FechaInscripcion).Paginar(page).ToListAsync();
+                PaginationResponse<InscripcionListDTO> response = new PaginationResponse<InscripcionListDTO>(Mapper.Map<List<InscripcionListDTO>>(inscripciones), page, registros);
+                return Ok(response);
             }
         }
 

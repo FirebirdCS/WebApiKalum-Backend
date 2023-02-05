@@ -42,14 +42,17 @@ namespace WebApiKalum_Backend.Controllers
         public async Task<ActionResult<IEnumerable<CarreraTecnicaListDTO>>> GetPagination(int page)
         {
             var queryable = this.DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(ins => ins.Inscripciones).AsSplitQuery().AsQueryable();
-            var paginacion = new HttpResponsePagination<CarreraTecnica>(queryable, page);
-            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            int registros = await queryable.CountAsync();
+            if (registros == 0)
             {
                 return NoContent();
             }
             else
             {
-                return Ok(paginacion);
+                var carrerasTecnicas = await queryable.OrderBy(carrerasTecnicas => carrerasTecnicas.Nombre).Paginar(page).ToListAsync();
+                PaginationResponse<CarreraTecnicaListDTO> response = new PaginationResponse<CarreraTecnicaListDTO>
+                    (Mapper.Map<List<CarreraTecnicaListDTO>>(carrerasTecnicas), page, registros);
+                return Ok(response);
             }
         }
 

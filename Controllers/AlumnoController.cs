@@ -40,17 +40,19 @@ namespace WebApiKalum_Backend.Controllers
 
         }
         [HttpGet("page/{page}")]
-        public async Task<ActionResult<IEnumerable<AlumnoListDTO>>> GetPagination(int page)
+        public async Task<ActionResult<IEnumerable<AlumnoListDTO>>> GetAspirante(int page)
         {
             var queryable = this.DbContext.Alumno.Include(ins => ins.Inscripciones).Include(cpc => cpc.CuentasPorCobrar).AsSplitQuery().AsQueryable();
-            var paginacion = new HttpResponsePagination<Alumno>(queryable, page);
-            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            int registros = await queryable.CountAsync();
+            if (registros == 0)
             {
                 return NoContent();
             }
             else
             {
-                return Ok(paginacion);
+                var alumnos = await queryable.OrderBy(alumno => alumno.Carne).Paginar(page).ToListAsync();
+                PaginationResponse<AlumnoListDTO> response = new PaginationResponse<AlumnoListDTO>(Mapper.Map<List<AlumnoListDTO>>(alumnos), page, registros);
+                return Ok(response);
             }
         }
         [HttpGet("{id}", Name = "GetAlumno")]
@@ -67,6 +69,20 @@ namespace WebApiKalum_Backend.Controllers
             AlumnoListDTO lista = Mapper.Map<AlumnoListDTO>(alumno);
             Logger.LogInformation("Se ejecuto la petición del carne de forma exitosa!");
             return Ok(lista);
+        }
+
+        [HttpGet("search", Name = "GetEmail")]
+        public async Task<ActionResult<AlumnoListDTO>> GetAspiranteByEmail([FromQuery] string email)
+        {
+            Logger.LogDebug("Iniciando el proceso de busqueda con el email " + email);
+            var alumno = await DbContext.Alumno.FirstOrDefaultAsync(a => a.Email == email);
+            if (alumno == null)
+            {
+                Logger.LogWarning("No existe el alumno con el email " + email);
+                return new NoContentResult();
+            }
+            Logger.LogInformation("Finalizando el proceso de busqueda de forma exitosa");
+            return Ok(Mapper.Map<AlumnoListDTO>(alumno));
         }
 
         [HttpPost]

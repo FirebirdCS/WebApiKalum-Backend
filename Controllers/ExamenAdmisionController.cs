@@ -38,18 +38,31 @@ namespace WebApiKalum_Backend.Controllers
             Logger.LogInformation("Se ejecuto la petición de forma exitosa!");
             return Ok(lista);
         }
+        [HttpGet("search", Name = "GetAnio")]
+        public async Task<ActionResult<IEnumerable<ExamenAdmisionListDTO>>> Get([FromQuery] int anio)
+        {
+            List<ExamenAdmision> examenesAdmision = await this.DbContext.ExamenAdmision.Where(e => e.FechaExamen.Year == anio).ToListAsync();
+            if (examenesAdmision == null || examenesAdmision.Count == 0)
+            {
+                return NoContent();
+            }
+            List<ExamenAdmisionListDTO> response = Mapper.Map<List<ExamenAdmisionListDTO>>(examenesAdmision);
+            return Ok(response);
+        }
         [HttpGet("page/{page}")]
         public async Task<ActionResult<IEnumerable<ExamenAdmisionListDTO>>> GetPagination(int page)
         {
             var queryable = this.DbContext.ExamenAdmision.Include(a => a.Aspirantes).AsSplitQuery().AsQueryable();
-            var paginacion = new HttpResponsePagination<ExamenAdmision>(queryable, page);
-            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            int registros = await queryable.CountAsync();
+            if (registros == 0)
             {
                 return NoContent();
             }
             else
             {
-                return Ok(paginacion);
+                var examenes = await queryable.OrderBy(examenes => examenes.FechaExamen).Paginar(page).ToListAsync();
+                PaginationResponse<ExamenAdmisionListDTO> response = new PaginationResponse<ExamenAdmisionListDTO>(Mapper.Map<List<ExamenAdmisionListDTO>>(examenes), page, registros);
+                return Ok(response);
             }
         }
         [HttpGet("{id}", Name = "GetExamenAdmision")]
@@ -69,14 +82,15 @@ namespace WebApiKalum_Backend.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ExamenAdmision>> Post([FromBody] ExamenAdmision value)
+        public async Task<ActionResult<ExamenAdmision>> Post([FromBody] ExamenAdmisionCreateDTO value)
         {
             Logger.LogDebug("Iniciando el proceso de agregar una Examen de Admision");
-            value.ExamenId = Guid.NewGuid().ToString().ToUpper();
-            await DbContext.ExamenAdmision.AddAsync(value);
+            ExamenAdmision nuevo = Mapper.Map<ExamenAdmision>(value);
+            nuevo.ExamenId = Guid.NewGuid().ToString().ToUpper();
+            await DbContext.ExamenAdmision.AddAsync(nuevo);
             await DbContext.SaveChangesAsync();
             Logger.LogInformation("Se finalizó el proceso de agregar un examen de admisión");
-            return new CreatedAtRouteResult("GetExamenAdmision", new { id = value.ExamenId }, value);
+            return new CreatedAtRouteResult("GetExamenAdmision", new { id = nuevo.ExamenId }, value);
         }
 
         [HttpDelete("{id}", Name = "DeleteExamenAdmision")]

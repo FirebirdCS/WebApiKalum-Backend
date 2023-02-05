@@ -12,7 +12,9 @@ namespace WebApiKalum_Backend.Utilities
             CreateMap<CarreraTecnicaCreateDTO, CarreraTecnica>();
             CreateMap<CarreraTecnica, CarreraTecnicaCreateDTO>();
             CreateMap<Jornada, JornadaCreateDTO>();
+            CreateMap<JornadaCreateDTO, Jornada>();
             CreateMap<ExamenAdmision, ExamenAdmisionCreateDTO>();
+            CreateMap<ExamenAdmisionCreateDTO, ExamenAdmision>();
             CreateMap<Aspirante, AspiranteListCTDTO>().ConstructUsing(e => new AspiranteListCTDTO { NombreCompleto = $"{e.Apellidos} {e.Nombres}" });
             CreateMap<Aspirante, AspiranteListDTO>().ConstructUsing(e => new AspiranteListDTO { NombreCompleto = $"{e.Apellidos} {e.Nombres}" });
             CreateMap<Inscripcion, InscripcionCreateDTO>();

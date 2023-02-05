@@ -5,6 +5,7 @@ using WebApiKalum;
 using WebApiKalum.Entities;
 using WebApiKalum_Backend.Dtos;
 using WebApiKalum_Backend.Entities;
+using WebApiKalum_Backend.Services;
 using WebApiKalum_Backend.Utilities;
 
 namespace WebApiKalum_Backend.Controllers
@@ -16,13 +17,14 @@ namespace WebApiKalum_Backend.Controllers
         private readonly KalumDbContext DbContext;
         private readonly ILogger<AspiranteController> Logger;
         private readonly IMapper Mapper;
+        private readonly IUtilsService UtilsService;
 
-
-        public AspiranteController(KalumDbContext _DbContext, ILogger<AspiranteController> _Logger, IMapper _Mapper)
+        public AspiranteController(KalumDbContext _DbContext, ILogger<AspiranteController> _Logger, IMapper _Mapper, IUtilsService _UtilsService)
         {
             this.DbContext = _DbContext;
             this.Logger = _Logger;
             this.Mapper = _Mapper;
+            this.UtilsService = _UtilsService;
         }
         [HttpGet]
         [ServiceFilter(typeof(ActionFilter))]
@@ -44,14 +46,16 @@ namespace WebApiKalum_Backend.Controllers
         public async Task<ActionResult<IEnumerable<AspiranteListDTO>>> GetPagination(int page)
         {
             var queryable = this.DbContext.Aspirante.Include(a => a.CarreraTecnica).Include(a => a.Jornada).Include(a => a.ExamenAdmision).AsSplitQuery().AsQueryable();
-            var paginacion = new HttpResponsePagination<Aspirante>(queryable, page);
-            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            int registros = await queryable.CountAsync();
+            if (registros == 0)
             {
                 return NoContent();
             }
             else
             {
-                return Ok(paginacion);
+                var aspirantes = await queryable.OrderBy(aspirante => aspirante.NoExpediente).Paginar(page).ToListAsync();
+                PaginationResponse<AspiranteListDTO> response = new PaginationResponse<AspiranteListDTO>(Mapper.Map<List<AspiranteListDTO>>(aspirantes), page, registros);
+                return Ok(response);
             }
         }
         [HttpGet("{id}", Name = "GetAspirante")]
@@ -69,7 +73,7 @@ namespace WebApiKalum_Backend.Controllers
             return Ok(lista);
         }
         [HttpPost]
-        public async Task<ActionResult<Aspirante>> Post([FromBody] Aspirante value)
+        public async Task<ActionResult<AspiranteListDTO>> Post([FromBody] AspiranteCreateDTO value)
         {
             Logger.LogDebug("Iniciando el proceso de agregar un Aspirante nuevo");
             CarreraTecnica carreraTecnica = await DbContext.CarreraTecnica.FirstOrDefaultAsync(ct => ct.CarreraId == value.CarreraId);
@@ -90,10 +94,20 @@ namespace WebApiKalum_Backend.Controllers
                 Logger.LogInformation("No existe el examen con id " + value.ExamenId);
                 return BadRequest();
             }
-            await DbContext.Aspirante.AddAsync(value);
-            await DbContext.SaveChangesAsync();
-            Logger.LogInformation("Se finalizó el proceso de agregar un Aspirante nuevo");
-            return new CreatedAtRouteResult("GetAspirante", new { id = value.NoExpediente }, value);
+            bool result = await this.UtilsService.CrearExpedienteAsync(value);
+            CandidateRecordResponse candidateRecordResponse = new CandidateRecordResponse();
+            if (result)
+            {
+                candidateRecordResponse.Status = "Ok";
+                candidateRecordResponse.Mensaje = $"El proceso de solicitud del expediente fue creado exitosamente, pronto recibira su número de expediente al correo {value.Email}";
+            }
+            else
+            {
+                candidateRecordResponse.Status = "Error";
+                candidateRecordResponse.Mensaje = $"Hubo un problema al crear la solicitud intente de nuevo o más tarde";
+            }
+            Logger.LogInformation($"Se ha creato la solicitud del aspirante con exito");
+            return Ok(candidateRecordResponse);
         }
 
         [HttpDelete("{id}", Name = "DeleteAspirante")]
@@ -132,6 +146,10 @@ namespace WebApiKalum_Backend.Controllers
             aspirante.Nombres = value.Nombres;
             aspirante.Direccion = value.Direccion;
             aspirante.Telefono = value.Telefono;
+            aspirante.Estatus = value.Estatus;
+            aspirante.CarreraId = value.CarreraId;
+            aspirante.JornadaId = value.JornadaId;
+            aspirante.ExamenId = value.ExamenId;
             DbContext.Entry(aspirante).State = EntityState.Modified;
             await DbContext.SaveChangesAsync();
             Logger.LogInformation("Se ha actualizado el aspirante");

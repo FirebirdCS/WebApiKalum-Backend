@@ -40,17 +40,19 @@ namespace WebApiKalum_Backend.Controllers
         }
 
         [HttpGet("page/{page}")]
-        public async Task<ActionResult<IEnumerable<JornadaListDTO>>> GetPagination(int page)
+        public async Task<ActionResult<IEnumerable<JornadaListDTO>>> GetJornada(int page)
         {
             var queryable = this.DbContext.Jornada.Include(a => a.Aspirantes).Include(ins => ins.Inscripciones).AsSplitQuery().AsQueryable();
-            var paginacion = new HttpResponsePagination<Jornada>(queryable, page);
-            if (paginacion.Content == null && paginacion.Content.Count == 0)
+            int registros = await queryable.CountAsync();
+            if (registros == 0)
             {
                 return NoContent();
             }
             else
             {
-                return Ok(paginacion);
+                var jornadas = await queryable.OrderBy(jornada => jornada.JornadaTipo).Paginar(page).ToListAsync();
+                PaginationResponse<JornadaListDTO> response = new PaginationResponse<JornadaListDTO>(Mapper.Map<List<JornadaListDTO>>(jornadas), page, registros);
+                return Ok(response);
             }
         }
         [HttpGet("{id}", Name = "GetJornada")]
@@ -69,14 +71,16 @@ namespace WebApiKalum_Backend.Controllers
             return Ok(lista);
         }
         [HttpPost]
-        public async Task<ActionResult<Jornada>> Post([FromBody] Jornada value)
+        public async Task<ActionResult<Jornada>> Post([FromBody] JornadaCreateDTO value)
         {
+
             Logger.LogDebug("Iniciando el proceso de agregar una Jornada nueva");
-            value.JornadaId = Guid.NewGuid().ToString().ToUpper();
-            await DbContext.Jornada.AddAsync(value);
+            Jornada nuevo = Mapper.Map<Jornada>(value);
+            nuevo.JornadaId = Guid.NewGuid().ToString().ToUpper();
+            await DbContext.Jornada.AddAsync(nuevo);
             await DbContext.SaveChangesAsync();
             Logger.LogInformation("Se finalizó el proceso de agregar una Jornada");
-            return new CreatedAtRouteResult("GetJornada", new { id = value.JornadaId }, value);
+            return new CreatedAtRouteResult("GetJornada", new { id = nuevo.JornadaId }, nuevo);
         }
 
         [HttpDelete("{id}", Name = "DeleteJornada")]
